@@ -41,7 +41,7 @@ def add_habit(db, id, name, interval, category, date_added, description=None):
                 (id, name, description, interval, category, date_added))
     db.commit()
 
-def add_tracker(db,habit_id,tracker_id, description, date_tracked, notes):
+def add_tracker(db,habit_id,tracker_id, description, date_tracked, notes=None):
     #TODO - ensure habit_id exists in habit table - perhaps do this in app level
     cur = db.cursor()
     cur.execute("INSERT INTO tracker VALUES (?,?,?,?,?)", 
