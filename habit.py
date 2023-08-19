@@ -13,7 +13,8 @@ class Habit:
         self.date_added = date_added
     
     def store_habit(self, db):
-        add_habit(db, self.habit_id, self.name, self.description, self.interval, self.category, self.date_added)
+        add_habit(db, name=self.name, description=self.description, 
+                  interval=self.interval, category=self.category, date_added=self.date_added)
     
     def delete_habit(self, db):
         remove_habit(db, self.habit_id)
