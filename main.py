@@ -5,7 +5,8 @@ import re
 from datetime import date
 from tracker import Tracker
 from habit import Habit
-from db import get_db, create_tables, retrieve_all, retrieve_one, edit_habit_db
+from streak import Streak
+from db import get_db,create_tables,retrieve_all,retrieve_one,edit_habit_db,remove_habit
 from sample_data import add_sample_data
 
 db = get_db("habit_tracker.db")
@@ -14,13 +15,11 @@ create_tables(db)
 def print_cust(text, style="bold"):
     return questionary.print(text, style = style)
 
-
 def new_con():
     os.system('clear')
 
 def exit_cli():
     sys.exit()
-
 
 def main_menu():
     print_cust("\n****MAIN MENU****\n", "bold fg:cyan")
@@ -33,7 +32,6 @@ def main_menu():
                                               "6. Analysis",
                                               "7. Exit"]).ask()
     return menu_option
-
 
 def create_new_habit(username):
     print_cust("\n***Create New Habit***", "bold fg:cyan")
@@ -75,21 +73,29 @@ def get_date_input():
         date_check=re.sub("[^0-9]","",date_input)
         current_year = int(date.today().year)
         current_date = int(date.today().strftime("%Y%m%d"))
-        print(current_date)
-        if int(date_check) > current_date:
-            print("Habits cannot be marked complete in the future, please try again")
-        elif int(date_check[0:4]) > current_year or int(date_check[0:4]) < 2020:
-            print("Only years between 2020 and the current year can be entered, please try again")
+    
+        if date_check == "":
+            print_cust("The date cannot contain letters. Please try again", "bold fg: red")
+        elif len(date_check) != 8:
+            print_cust("Your date is not in the correct format, please try again", "bold fg: red")
         elif int(date_check[4:6]) > 12 or int(date_check[4:6]) < 1:
-            print_cust("There seems to be an error with the month entered, please try again")
+            print_cust("There seems to be an error with the month entered, please try again", "bold fg: red")
         elif int(date_check[6:8]) >31 or int(date_check[6:8]) < 1:
-            print_cust("There seems to be an error with the day entered, please try again")  
+            print_cust("There seems to be an error with the day entered, please try again", "bold fg: red")  
+        elif int(date_check[0:4]) > current_year or int(date_check[0:4]) < 2020:
+            print_cust("Only years between 2020 and the current year can be entered, please try again", "bold fg: red")
+        elif int(date_check) > current_date:
+            print_cust("Habits cannot be marked complete in the future, please try again", "bold fg: red")
         elif int(date_check[4:6]) in [4, 6, 9, 11]:
             if int(date_check[6:8]) > 30:
-                print_cust("There seems to be an error with your date, please try again")
+                print_cust("There seems to be an error with your date, please try again", "bold fg: red")
+            else:
+                date_correct = True
         elif int(date_check[4:6]) == 2:
             if int(date_check[6:8]) > 28:
-                print_cust("There seems to be an error with your date, please try again")
+                print_cust("There seems to be an error with your date, please try again", "bold fg: red")
+            else:
+                date_correct = True
         else:
             date_correct = True
     return date_input
@@ -116,7 +122,13 @@ def log_habit():
         track = Tracker(chosen_habit[0], None, description, date.today(), notes )
         track.store_tracker(db)
         data_pushed, headers = retrieve_all(db, "tracker")
+        if data_pushed[-2]:
+            previous_data = data_pushed[-2]
+        else: 
+            previous_data = None
         data_pushed = data_pushed[-1]
+        streak = Streak(data_pushed[1])
+        streak.push_streak_one(db, data_pushed, previous_data)
         habit, headers = retrieve_one(db, "habit", data_pushed[1])
         print_cust(f"\n{habit[0][1].capitalize()} habit marked as complete!\nDate: {data_pushed[3]}", "bold fg:green")
     else:
@@ -126,8 +138,15 @@ def log_habit():
         track = Tracker(chosen_habit[0], None, description, date_input, notes )
         track.store_tracker(db)
         data_pushed, headers = retrieve_all(db, "tracker")
+        if data_pushed[-2]:
+            previous_data = data_pushed[-2]
+        else: 
+            previous_data = None
         data_pushed = data_pushed[-1]
         habit, headers = retrieve_one(db, "habit", data_pushed[1])
+        streak = Streak(data_pushed[1])
+        streak.push_streak_one(db, data_pushed, previous_data)
+        new_con()
         print_cust(f"\n{habit[0][1].capitalize()} habit marked as complete!\nDate: {data_pushed[3]}", "bold fg:green")
 
 def edit_habit():
@@ -158,19 +177,37 @@ def edit_habit():
                                                  "Relationships", "Emotional", "Financial",
                                                  "Spiritual", "Religious", "Social"]).ask()
     edit_habit_db(db, to_edit.lower(), f"'{new_data}'", habit_id)
+    new_con()
     print_cust(f"\nHabit -{habit_data[0][1].lower()}-'s {to_edit.lower()} changed to {new_data}", "bold fg:green")
     
-
-def remove_habit():
-    pass
-
+def delete_habit():
+    print_cust("\n***Delete Habit***", "bold fg:cyan")
+    all_habits, headers = retrieve_all(db, 'habit')
+    menu_options = []
+    for habit in all_habits:
+        if habit[1] != "DEMO_DATA":
+            menu_options.append(f"ID:{habit[0]} name: {habit[1]}")
+    to_delete = questionary.select("\nWhich habit would you like to delete?\n",
+                                   choices=menu_options).ask()
+    confirm = questionary.select(f"Are you sure you want to permanently delete habit: -{to_delete}- and all its records?",
+                                 choices = ["Yes", "No"]).ask()
+    if confirm == "Yes":
+        remove_habit(db, int(to_delete[3]))
+        new_con()
+        print_cust(f"\nHabit {to_delete} permanently deleted", "bold fg:green")
+    
 def view_current():
-    pass
+    print_cust("\n***View Current Habits***", "bold fg:cyan")
+    all_data, headers = retrieve_all(db, 'habit')
+    for data in all_data:
+        if data[1] != "DEMO_DATA":
+            print_cust(f"\n**Habit {data[0]}**\nHabit Name: {data[1].capitalize()}\nDescription:{data[2].capitalize()}\nInterval: {data[3].capitalize()}\nCategory: {data[4].capitalize}\nDate Added: {data[5]}\n")
+    back_to_main = questionary.select("Back to main menu?", choices=["Yes"]).ask()
+    if back_to_main:
+        main_menu()
 
 def analysis():
     pass
-
-
 
 def startup_cli():
     running = True
@@ -192,7 +229,7 @@ def startup_cli():
             edit_habit()
             menu_option = main_menu()
         elif "4" in menu_option:
-            remove_habit()
+            delete_habit()
             menu_option = main_menu()
         elif "5" in menu_option:
             view_current()
@@ -203,9 +240,6 @@ def startup_cli():
         elif "7" in menu_option:
             print_cust("Goodbye, see you soon!\n")
             exit_cli()
-
-
-
 
 if __name__ == "__main__":
     startup_cli()

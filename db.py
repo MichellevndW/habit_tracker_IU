@@ -1,4 +1,5 @@
 import sqlite3
+import re
 
 def get_db(name):
     db = sqlite3.connect(name)
@@ -45,7 +46,7 @@ def add_tracker(db,habit_id, description, date_tracked, notes=None):
     #TODO - ensure habit_id exists in habit table - perhaps do this in app level
     cur = db.cursor()
     cur.execute("INSERT INTO tracker VALUES (null,?,?,?,?)", 
-                ( habit_id, description, date_tracked, notes))
+                ( habit_id, description, (re.sub("[^0-9]","",date_tracked)), notes))
     db.commit()
 
 def add_streak(db,habit_id, current_streak, streak_broken, longest_streak):
@@ -104,6 +105,10 @@ def retrieve_all(db, table_name, habit_id=None):
     cur = db.cursor()
     if table_name == "habit":
         to_retrieve = f"SELECT * FROM habit"
+    elif table_name == "tracker" and habit_id != None:
+        to_retrieve = f"SELECT * FROM {table_name} WHERE habit_id = {habit_id} ORDER BY date_tracked ASC"
+    elif table_name == "tracker":
+        to_retrieve = f"SELECT * FROM {table_name} ORDER BY date_tracked ASC"
     elif habit_id != None:
         to_retrieve = f"SELECT * FROM {table_name} WHERE habit_id = {habit_id}"
     else:
