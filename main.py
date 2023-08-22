@@ -3,11 +3,16 @@ import os
 import sys
 import re
 from datetime import date
+from analyse import view_habits, view_longest_streak, view_streaks_all, view_streak_single
 from tracker import Tracker
 from habit import Habit
 from streak import Streak
 from db import get_db,create_tables,retrieve_all,retrieve_one,edit_habit_db,remove_habit
 from sample_data import add_sample_data
+
+
+#TODO ADD COMMENTS
+#TODO REMOVE ALL UNNECESSARY PRINT STATEMeNTS
 
 db = get_db("habit_tracker.db")
 create_tables(db)
@@ -197,17 +202,50 @@ def delete_habit():
         print_cust(f"\nHabit {to_delete} permanently deleted", "bold fg:green")
     
 def view_current():
+    #TODO move to analyse
     print_cust("\n***View Current Habits***", "bold fg:cyan")
-    all_data, headers = retrieve_all(db, 'habit')
-    for data in all_data:
-        if data[1] != "DEMO_DATA":
-            print_cust(f"\n**Habit {data[0]}**\nHabit Name: {data[1].capitalize()}\nDescription:{data[2].capitalize()}\nInterval: {data[3].capitalize()}\nCategory: {data[4].capitalize}\nDate Added: {data[5]}\n")
-    back_to_main = questionary.select("Back to main menu?", choices=["Yes"]).ask()
+    back_to_main = view_habits()
     if back_to_main:
         main_menu()
 
 def analysis():
-    pass
+    print_cust("***Analysis***", "bold fg: cyan")
+    menu_option = questionary.select("Please choose an option to view",
+                                      choices = ["1. View Current Habits", 
+                                                 "2. View Current and Longest Streak - All Habits",
+                                                 "3. View Current and Longest Streak - One Habit",
+                                                 "4. View Longest Streak",
+                                                 "5. View Broken Streaks - All Habits",
+                                                 "6. View Daily Habits",
+                                                 "7. View Weekly Habits",
+                                                 "8. View Monthly Habits"]).ask()
+    if menu_option[0] == "1":
+        print_cust("\n**View Current Habits**", "bold fg:cyan")
+        view_habits()
+        new_con()
+    elif menu_option[0] == "2":
+        view_streaks_all()
+        new_con()
+    elif menu_option[0] == "3":
+        habit_data, headers = retrieve_all(db, "habit")
+        menu_options = []
+        for habit in habit_data:
+            if habit[1] != "DEMO_DATA":
+                menu_options.append(f"ID: {habit[0]}. Name: {habit[1].capitalize()}")
+        menu_option = questionary.select("Which Habit's Streak would you like to view?\n",
+                                         choices = menu_options).ask()
+        view_streak_single((int(menu_option[4])))
+        new_con()
+    elif menu_option[0] == "4":
+        view_longest_streak()
+        new_con()
+    elif menu_option[0] == "5":
+        pass
+    elif menu_option[0] == "6":
+        pass
+    elif menu_option[0] == "7":
+        pass
+        
 
 def startup_cli():
     running = True
