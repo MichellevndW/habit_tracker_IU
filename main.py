@@ -11,23 +11,30 @@ from streak import Streak
 from db import get_db,create_tables,retrieve_all,retrieve_one,edit_habit_db,remove_habit
 from sample_data import add_sample_data
 
-
-#TODO ADD COMMENTS
-#TODO REMOVE ALL UNNECESSARY PRINT STATEMeNTS
-
 db = get_db("habit_tracker.db")
 create_tables(db)
 
 def print_cust(text, style="bold"):
+    """To print in custom styles for better user experience"""
     return questionary.print(text, style = style)
 
 def new_con():
+    """
+    To clear terminal for better user experience
+    (Replace with pass to disable this functionality)
+    """
     os.system('clear')
 
 def exit_cli():
+    """Calls to exit terminal"""
     sys.exit()
 
 def main_menu():
+    """
+    Prints main menu for user selection
+    :param menu_option: prints menu with user's options
+    :return: User selected option 
+    """
     print_cust("\n****MAIN MENU****\n", "bold fg:cyan")
     menu_option = questionary.select("What would you like to do today?\n", 
                                      choices=["1. Log a Habit",
@@ -40,6 +47,11 @@ def main_menu():
     return menu_option
 
 def create_new_habit(username):
+    """
+    Function to get user input to create and save a new habit to the database
+    :param name, interval, category: Gathers user input
+    :param habit: Creates a new instance of the class Habit
+    """
     print_cust("\n***Create New Habit***", "bold fg:cyan")
     print_cust(f"\nOk {username}, let's create a new habit!")
     name = questionary.text("Name of new habit: ").ask()
@@ -54,6 +66,14 @@ def create_new_habit(username):
     habit.store_habit(db)
     
 def demo_data_check(username):
+    """
+    Function to: -check if demo data is loaded
+                 -ask the user whether they want demo data loaded
+                 -call function add_sample_data() to load data if necessary
+                 -redirect to create_new_habit if needed
+    :param all_data: loads all habit data from the database
+
+    """
     demo_loaded = False
     all_data, headers = retrieve_all(db, "habit")
     if all_data:
@@ -72,8 +92,15 @@ def demo_data_check(username):
             create_new_habit(username)
 
 def get_date_input():
+    """
+    Gathers manual date input from user and does basic validity checks
+    :param date_input: Asks for user date input
+    :param date_check: Removes all spaces and other characters from user input(date_input)
+    :param current_year: Current year in integer format
+    :param current_date: Current date in str format
+    :return: date_input 
+    """
     date_correct = False
-
     while date_correct == False:
         date_input = questionary.text("When would you like to log this habit for? (yyyy mm dd)").ask()
         date_check = re.sub("[^0-9]","",date_input)
@@ -107,6 +134,13 @@ def get_date_input():
     return date_input
 
 def check_date_exists(chosen_habit):
+    """
+    Checks if the date entered already exists for the specific habit in the database
+    :param all_tracker_data: retrieves all tracker data of the specified habit from the database
+    :param habit_date: Date when habit was created, formatted in numbers only
+    :param date_input: calls get_date_input() for date input and verification
+    :return date_input
+    """
     check = True 
     all_tracker_data, headers = retrieve_all(db, "tracker", chosen_habit[0])
     habit_date = re.sub("[^0-9]","",chosen_habit[5])
@@ -130,13 +164,29 @@ def check_date_exists(chosen_habit):
     return date_input
 
 def log_habit():
+    """
+    Function to mark a habit as complete or log a tracker for a specific habit.
+    -Creates new tracker and streak data in the respective tables
+    :param habits: retrieves all habit data from the database
+    :param menu_options: iterates over habits and compiles a list of current habits
+                         available to mark as complete.
+    :param menu_option: Asks user input to choose habit to be marked complete
+    :param chosen_habit: Used to retrieve specific habit from the habit table
+    :param track: Calls a new instance of Tracker class
+    :param data_pushed: Retrieves all tracker data ordered by tracker_id to get tracker last logged
+    :param trackers_ob_date: Retrieves all tracker data in tracker table ordered by date 
+    :param streak: Calls a new instance of Streak class
+    :param habit: Retrieves specific habit data from habit table
+    :params date_clean, date_str: compiles date in user friendly str format
+    :param date_input: Calls check_date_exists() to get a verified date from user input
+    """
+    print_cust("\n***Log Habit***", "bold fg:cyan")
     habits, headers = retrieve_all(db, "habit")
     menu_options = []
     chosen_habit = None
     for habit in habits:
         if habit[1].lower() != "demo_data":
             menu_options.append(f"ID:{habit[0]} Name:{habit[1].capitalize()}")
-    menu_options.append("Exit")
     menu_option = questionary.select("Which habit would you like to mark as complete?\n", 
                                      choices=menu_options).ask()
     for habit in habits:
@@ -149,12 +199,15 @@ def log_habit():
         notes = questionary.text("Add any notes here: ").ask()
         track = Tracker(chosen_habit[0], None, description, date.today(), notes )
         track.store_tracker(db)
-        data_pushed, headers = retrieve_all(db, "tracker")
-        if data_pushed[-2]:
-            previous_data = data_pushed[-2]
-        else: 
-            previous_data = None
+        data_pushed, headers = retrieve_all(db, "tracker", no_order=True)
         data_pushed = data_pushed[-1]
+        track.tracker_id = data_pushed[0]
+        trackers_ob_date, headers = retrieve_all(db, "tracker")
+        index = trackers_ob_date.index(data_pushed)
+        if index != 0:
+            previous_data = trackers_ob_date[(index-1)]
+        else:
+            previous_data = None    
         streak = Streak(data_pushed[1])
         streak.push_streak_one(db, data_pushed, previous_data)
         habit, headers = retrieve_one(db, "habit", data_pushed[1])
@@ -184,6 +237,18 @@ def log_habit():
         print_cust(f"\n{habit[0][1].capitalize()} habit marked as complete!\nDate: {data_pushed[3]}", "bold fg:green")
 
 def edit_habit():
+    """
+    Function to edit an already existing habit in the habit table
+             - User can not edit habit_id or date_added
+             - Only one parameter can be edited per edit_habit()
+    :param all_data: Retrieves all habit data from habit table
+    :param menu_options: Iterates over all habit data to compile user choices
+    :param habit_to_edit: User input to choose which habit to edit
+    :param habit_id: ID of habit to be edited
+    :param habit_data: Retrieves specified habit data from habit table
+    :param to_edit: Gets user input about what parameter the user wants to edit
+    :param new_data: New data to edit in habit table
+    """
     print_cust("\n***Edit Habit***", "bold fg:cyan")
     all_data, headers = retrieve_all(db, "habit")
     menu_options = []
@@ -215,6 +280,14 @@ def edit_habit():
     print_cust(f"\nHabit -{habit_data[0][1].lower()}-'s {to_edit.lower()} changed to {new_data}", "bold fg:green")
     
 def delete_habit():
+    """
+    Function to permanently delete habit data and all related tracker and streak data
+        -User is prompted whether they are sure they want to delete as to prevent accidental deletion
+    :param all_habits: Retrieves all habit data from habit table
+    :param menu_options: Iterates over habits to compile a list of habits that can be deleted
+    :param to_delete: User selected habit
+    :param confirm: User input to confirm deletion
+    """
     print_cust("\n***Delete Habit***", "bold fg:cyan")
     all_habits, headers = retrieve_all(db, 'habit')
     menu_options = []
@@ -229,15 +302,12 @@ def delete_habit():
         remove_habit(db, int(to_delete[3]))
         new_con()
         print_cust(f"\nHabit {to_delete} permanently deleted", "bold fg:green")
-    
-def view_current():
-    #TODO move to analyse
-    print_cust("\n***View Current Habits***", "bold fg:cyan")
-    back_to_main = view_habits()
-    if back_to_main:
-        main_menu()
 
 def analysis():
+    """
+    Function to handle terminal printing and user input and redirection of analysis menu
+    :param menu_option: Prints user menu with available analysis options for user choice
+    """
     print_cust("\n***Analysis***", "bold fg: cyan")
     menu_option = questionary.select("Please choose an option to view",
                                       choices = ["1. View Current Habits", 
@@ -283,8 +353,10 @@ def analysis():
         
 
 def startup_cli():
+    """
+    Function to continually loop to the main menu until user decides to exit. 
+    """
     running = True
-
     print_cust("\nWELCOME TO YOUR HABIT TRACKER! \n", "bold fg:cyan")
     name = questionary.text("What should we call you?").ask() 
     print_cust(f"\nWelcome {name}! You are one step closer to healthy habits!")
@@ -305,7 +377,7 @@ def startup_cli():
             delete_habit()
             menu_option = main_menu()
         elif "5" in menu_option:
-            view_current()
+            view_habits()
             menu_option = main_menu()
         elif "6" in menu_option:
             analysis()

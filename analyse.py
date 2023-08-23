@@ -111,7 +111,6 @@ def view_daily():
     print_cust("\n**View Daily Habits**", "bold fg:cyan")
     all_habits,headers = retrieve_all(db, "habit")
     all_daily_habits = []
-    print(len(all_daily_habits))
     for habit in all_habits:
         if habit[3].lower() == "daily":
             all_daily_habits.append(habit)

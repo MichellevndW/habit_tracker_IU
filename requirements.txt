@@ -1,0 +1,4 @@
+plotext==5.2.8
+prompt-toolkit==3.0.36
+questionary==2.0.0
+wcwidth==0.2.6
