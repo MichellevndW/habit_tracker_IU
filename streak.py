@@ -18,30 +18,21 @@ class Streak:
         #TODO get habit data, do calculations and edit streak
         current_streak_data, headers = retrieve_one(db, "streak", self.habit_id)
         all_trackers, headers = retrieve_all(db, "tracker", self.habit_id)
-        print(all_trackers)
         habit, headers = retrieve_one(db, "habit", self.habit_id)
         interval = habit[0][3]
         streak_count = 0
         longest_streak = 0
-        print("HABIT", habit)
         habit_creation_date = habit[0][5]
-        print("HABIT CREATION DATE", habit_creation_date)
         latest_date = re.sub("[^0-9]","",habit_creation_date)
-        print("LATEST", latest_date)
         latest_date = date(int(latest_date[0:4]), int(latest_date[4:6]), int(latest_date[6:8]))
         if current_streak_data[0][2] != None and current_streak_data[0][2] != "" and current_streak_data[0][2] != " ":
             streak_broken = list(current_streak_data[0][2].split(","))
-            print("here")
         else:
             streak_broken = []
-            print("over_here")
-        print("streak broken", streak_broken)
         if interval.lower() == "daily":
             for tracker in all_trackers:
                 clean_date = re.sub("[^0-9]","",tracker[3])
                 tracker_date = date(int(clean_date[0:4]), int(clean_date[4:6]), int(clean_date[6:8]))
-                print("tracker date", tracker_date)
-                print("latest_date", latest_date)
                 if (tracker_date - latest_date).days > 1:
                     streak_broken.append(clean_date)
                     streak_count = 0
@@ -89,7 +80,6 @@ class Streak:
                 streak_broken_str += streak
             else:
                 streak_broken_str += f", {streak}"
-        print(streak_broken_str)
         self.streak_broken = f"'{streak_broken_str}'"    
        
         edit_streak(db, "longest_streak", self.longest_streak, self.habit_id)
@@ -112,7 +102,6 @@ class Streak:
             longest_streak = 0
         if previous_data:
             previous_date = previous_data[3]
-            print("PREVIOUS", previous_data)
             latest_date = date(int(previous_date[0:4]), int(previous_date[4:6]), int(previous_date[6:8]))
         else:
             previous_date = re.sub("[^0-9]","",habit[0][5])
@@ -154,7 +143,6 @@ class Streak:
                 streak_broken_str += streak
             else:
                 streak_broken_str += f", {streak}"
-        print(streak_broken_str)
         self.streak_broken = f"'{streak_broken_str}'"    
         edit_streak(db, "longest_streak", self.longest_streak, self.habit_id)
         edit_streak(db, "current_streak", self.current_streak, self.habit_id)

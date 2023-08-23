@@ -1,9 +1,13 @@
 import sqlite3
 import re
+import questionary
 
 def get_db(name):
     db = sqlite3.connect(name)
     return db
+
+def print_cust(text, style="bold"):
+    return questionary.print(text, style = style)
 
 def create_tables(db):
     cur = db.cursor()
@@ -38,9 +42,14 @@ def create_tables(db):
 
 def add_habit(db, name, interval, category, date_added, description=None):
     cur = db.cursor()
-    cur.execute("INSERT INTO habit VALUES (null,?,?,?,?,?)", 
-                ( name, description, interval, category, date_added))
-    db.commit()
+    if name and interval and category and date_added:
+        cur.execute("INSERT INTO habit VALUES (null,?,?,?,?,?)", 
+                    ( name, description, interval, category, date_added))
+        db.commit()
+        print_cust(f"\nNew {interval} {name} habit created.", "bold fg:green")
+    else:
+        print_cust("\n***HABIT NOT ADDED, all required fields not entered. Please try again***", "bold fg:red")
+    
 
 def add_tracker(db,habit_id, description, date_tracked, notes=None):
     #TODO - ensure habit_id exists in habit table - perhaps do this in app level
@@ -101,12 +110,14 @@ def remove_all_trackers(db, habit_id):
     cur.execute(to_delete)
     db.commit()
 
-def retrieve_all(db, table_name, habit_id=None):
+def retrieve_all(db, table_name, habit_id=None, no_order=False):
     cur = db.cursor()
     if table_name == "habit":
         to_retrieve = f"SELECT * FROM habit"
-    elif table_name == "tracker" and habit_id != None:
+    elif table_name == "tracker" and habit_id != None and no_order == False:
         to_retrieve = f"SELECT * FROM {table_name} WHERE habit_id = {habit_id} ORDER BY date_tracked ASC"
+    elif table_name == "tracker" and no_order == True:
+        to_retrieve = f"SELECT * FROM {table_name}"
     elif table_name == "tracker":
         to_retrieve = f"SELECT * FROM {table_name} ORDER BY date_tracked ASC"
     elif habit_id != None:

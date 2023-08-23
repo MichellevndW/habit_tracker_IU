@@ -4,6 +4,7 @@ import sys
 import re
 from datetime import date
 from analyse import view_habits, view_longest_streak, view_streaks_all, view_streak_single
+from analyse import streak_broken, view_daily, view_weekly, view_monthly
 from tracker import Tracker
 from habit import Habit
 from streak import Streak
@@ -51,8 +52,7 @@ def create_new_habit(username):
                                              "Spiritual", "Religious", "Social"]).ask()
     habit = Habit(None, name, description, interval, category, (date.today().strftime("%Y%m%d")))
     habit.store_habit(db)
-    print_cust(f"\nNew {interval} {name} habit created.","bold fg:green")
-
+    
 def demo_data_check(username):
     demo_loaded = False
     all_data, headers = retrieve_all(db, "habit")
@@ -67,6 +67,7 @@ def demo_data_check(username):
         demo_data = questionary.select("Would you like to load the available demo data?", choices=["Yes","No thanks"]).ask()
         if demo_data == "Yes":
             add_sample_data(db)
+            print_cust("\nDemo Data Loaded", "bold fg:green")
         else:
             create_new_habit(username)
 
@@ -75,7 +76,7 @@ def get_date_input():
 
     while date_correct == False:
         date_input = questionary.text("When would you like to log this habit for? (yyyy mm dd)").ask()
-        date_check=re.sub("[^0-9]","",date_input)
+        date_check = re.sub("[^0-9]","",date_input)
         current_year = int(date.today().year)
         current_date = int(date.today().strftime("%Y%m%d"))
     
@@ -105,6 +106,28 @@ def get_date_input():
             date_correct = True
     return date_input
 
+def check_date_exists(chosen_habit):
+    check = True 
+    all_tracker_data, headers = retrieve_all(db, "tracker", chosen_habit[0])
+    habit_date = re.sub("[^0-9]","",chosen_habit[5])
+    while check:
+        date_input = get_date_input()
+        date_input = re.sub("[^0-9]","",date_input)
+        date_exists = False
+        for tracker in all_tracker_data:
+            if tracker[3] == date_input:
+                date_exists = True
+                print_cust("\nYou have already logged this habit on this date, please try again", "bold fg:red")
+                break
+            elif int(date_input) < int(habit_date):
+                date_exists = True
+                print_cust("\nDate cannot be before habit was created, please try again", "bold fg:red")
+                break
+            else:
+                pass
+        if date_exists == False:
+            check = False
+    return date_input
 
 def log_habit():
     habits, headers = retrieve_all(db, "habit")
@@ -112,12 +135,12 @@ def log_habit():
     chosen_habit = None
     for habit in habits:
         if habit[1].lower() != "demo_data":
-            menu_options.append(habit[1].capitalize())
+            menu_options.append(f"ID:{habit[0]} Name:{habit[1].capitalize()}")
     menu_options.append("Exit")
     menu_option = questionary.select("Which habit would you like to mark as complete?\n", 
                                      choices=menu_options).ask()
     for habit in habits:
-        if habit[1].lower() == menu_option.lower():
+        if habit[0] == int(menu_option[3]):
             chosen_habit = habit
     menu_option = questionary.select("Did you complete this habit today?\n", 
                                      choices=["Yes", "No"]).ask()
@@ -135,19 +158,25 @@ def log_habit():
         streak = Streak(data_pushed[1])
         streak.push_streak_one(db, data_pushed, previous_data)
         habit, headers = retrieve_one(db, "habit", data_pushed[1])
-        print_cust(f"\n{habit[0][1].capitalize()} habit marked as complete!\nDate: {data_pushed[3]}", "bold fg:green")
+        new_con()
+        date_clean = re.sub("[^0-9]","",data_pushed[3])
+        date_str = date(int(date_clean[0:4]), int(date_clean[4:6]), int(date_clean[6:8])).strftime("%d %b %Y")
+        print_cust(f"\n{habit[0][1].capitalize()} habit marked as complete!\nDate: {date_str}", "bold fg:green")
     else:
-        date_input = get_date_input()
+        date_input = check_date_exists(chosen_habit)
         description = questionary.text("Give a brief description: ").ask()
         notes = questionary.text("Add any notes here: ").ask()
         track = Tracker(chosen_habit[0], None, description, date_input, notes )
         track.store_tracker(db)
-        data_pushed, headers = retrieve_all(db, "tracker")
-        if data_pushed[-2]:
-            previous_data = data_pushed[-2]
-        else: 
-            previous_data = None
+        data_pushed, headers = retrieve_all(db, "tracker", no_order=True)
         data_pushed = data_pushed[-1]
+        track.tracker_id = data_pushed[0]
+        trackers_ob_date, headers = retrieve_all(db, "tracker")
+        index = trackers_ob_date.index(data_pushed)
+        if index != 0:
+            previous_data = trackers_ob_date[(index-1)]
+        else:
+            previous_data = None    
         habit, headers = retrieve_one(db, "habit", data_pushed[1])
         streak = Streak(data_pushed[1])
         streak.push_streak_one(db, data_pushed, previous_data)
@@ -191,7 +220,7 @@ def delete_habit():
     menu_options = []
     for habit in all_habits:
         if habit[1] != "DEMO_DATA":
-            menu_options.append(f"ID:{habit[0]} name: {habit[1]}")
+            menu_options.append(f"ID:{habit[0]} Name: -{habit[1]}-")
     to_delete = questionary.select("\nWhich habit would you like to delete?\n",
                                    choices=menu_options).ask()
     confirm = questionary.select(f"Are you sure you want to permanently delete habit: -{to_delete}- and all its records?",
@@ -209,7 +238,7 @@ def view_current():
         main_menu()
 
 def analysis():
-    print_cust("***Analysis***", "bold fg: cyan")
+    print_cust("\n***Analysis***", "bold fg: cyan")
     menu_option = questionary.select("Please choose an option to view",
                                       choices = ["1. View Current Habits", 
                                                  "2. View Current and Longest Streak - All Habits",
@@ -240,11 +269,17 @@ def analysis():
         view_longest_streak()
         new_con()
     elif menu_option[0] == "5":
-        pass
+        streak_broken()
+        new_con()
     elif menu_option[0] == "6":
-        pass
+        view_daily()
+        new_con()
     elif menu_option[0] == "7":
-        pass
+        view_weekly()
+        new_con()
+    elif menu_option[0] == "8":
+        view_monthly()
+        new_con()
         
 
 def startup_cli():
