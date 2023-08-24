@@ -11,8 +11,8 @@ Skip down to the analyse menu to view your habits, see your longest streak or se
 
 ### Requirements
 
-*Python 3.8 or later
-*Libraries in requirements.txt
+* Python 3.8 or later
+* Libraries in requirements.txt
 
 ### Installing
 
@@ -37,11 +37,11 @@ python3 main.py
 
 ### Possible further improvements for this project:
 
-*User friendly online UX/UI improvement
-*User class can be created and user credentials stored for long term persistance and multi-user options
-*Further verification e.g. check if a habit name already exists
-*Reset tracker functionality
-*More analysis options e.g viewing all habits of a category, time between streak breaks, possible connections to streak breaks etc. 
+* User friendly online UX/UI improvement
+* User class can be created and user credentials stored for long term persistance and multi-user options
+* Further verification e.g. check if a habit name already exists
+* Reset tracker functionality
+* More analysis options e.g viewing all habits of a category, time between streak breaks, possible connections to streak breaks etc. 
 
 ## Authors
 
