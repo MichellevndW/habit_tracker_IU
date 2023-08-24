@@ -1,5 +1,4 @@
 from db import get_db, add_habit, retrieve_all
-from datetime import date
 from streak import Streak
 
 db = get_db("habit_tracker.db")
@@ -14,6 +13,10 @@ class Habit:
         self.date_added = date_added
     
     def store_habit(self, db):
+        """
+        Function to store habit to the Database
+        :param db: Database where habit should be stored
+        """
         add_habit(db, name=self.name, description=self.description, 
                   interval=self.interval, category=self.category, date_added=self.date_added)
         habits, headers = retrieve_all(db, "habit")

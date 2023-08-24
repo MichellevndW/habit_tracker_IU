@@ -12,10 +12,20 @@ class Streak:
         self.longest_streak = longest_streak
 
     def store_streak(self, db):
+        """
+        Function to store streak to the streak table in the database.
+            -Mainly used for initial streak creation after new habit creation
+        :param db: Database where data is stored
+        """
         add_streak(db, self.habit_id, self.current_streak, self.streak_broken, self.longest_streak)
 
     def push_streak_all(self, db):
-        #TODO get habit data, do calculations and edit streak
+        """
+        Function to calculate the streak of a habit and store it in the streak table
+            -Mainly used for adding sample data or large sets of data not added 
+            through the cli
+        :param db: Database where data is stored
+        """
         current_streak_data, headers = retrieve_one(db, "streak", self.habit_id)
         all_trackers, headers = retrieve_all(db, "tracker", self.habit_id)
         habit, headers = retrieve_one(db, "habit", self.habit_id)
@@ -87,6 +97,13 @@ class Streak:
         edit_streak(db, "streak_broken", self.streak_broken, self.habit_id)
 
     def push_streak_one(self, db, track_data, previous_data):
+        """
+        Function to calculate streak for a specific habit and store it to the streak table
+            -Used for data from cli input(One habit logged at a time)
+        :param db: Database where data is to be stored
+        :param track_data: Set of data that was just added through habit logged to tracker table
+        :param previous_data: Data set of the previous tracker in the tracker table
+        """
         habit, headers = retrieve_one(db, "habit", self.habit_id)
         interval = habit[0][3]
         tracker_date = track_data[3]
@@ -149,4 +166,8 @@ class Streak:
         edit_streak(db, "streak_broken", self.streak_broken, self.habit_id)
 
     def delete_streak(db, self):
+        """
+        Function to delete all streaks with specific habit_id
+        :param db: Database where data is stored
+        """
         remove_streak(db, self.habit_id)

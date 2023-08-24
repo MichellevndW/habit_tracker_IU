@@ -6,9 +6,18 @@ import re
 
 db = get_db("habit_tracker.db")
 def print_cust(text, style="bold"):
+    """
+    To print in custom styles for better user experience
+    :param text: Text that has to be printed
+    :param style: Any custom style
+    :return questionary print statement
+    """
     return questionary.print(text, style = style)
 
 def view_habits():
+    """
+    Function to view all current habits printed in the terminal
+    """
     all_data, headers = retrieve_all(db, 'habit')
     for data in all_data:
         if data[1] != "DEMO_DATA":
@@ -23,6 +32,9 @@ def view_habits():
     return back_to_main
 
 def view_streaks_all():
+    """
+    Function to view all current and longest streaks in visual chart format
+    """
     all_habit_data, headers = retrieve_all(db, 'habit')
     all_streak_data, headers = retrieve_all(db, "streak")
     habit_names = []
@@ -44,6 +56,10 @@ def view_streaks_all():
     back_to_main = questionary.select("\nBack to main menu?", choices=["Yes"]).ask()
 
 def view_streak_single(habit_id):
+    """
+    Function to view the current and longest streak of a specific habit in visual chart format
+    :param habit_id: Habit id of chosen habit to be viewed
+    """
     habit_data, headers = retrieve_one(db, "habit", habit_id)
     streak_data, headers = retrieve_one(db, "streak", habit_id)
     habit_name = [habit_data[0][1], "", "", ""]
@@ -59,6 +75,9 @@ def view_streak_single(habit_id):
     back_to_main = questionary.select("\nBack to main menu?", choices=["Yes"]).ask()
 
 def view_longest_streak():
+    """
+    Function to find and display the habit with the longest streak
+    """
     streak_data, headers = retrieve_all(db, "streak")
     longest_streak = None
     for streak in streak_data:
@@ -83,6 +102,9 @@ def view_longest_streak():
     back_to_main = questionary.select("Back to main menu?", choices=["Yes"]).ask()
 
 def streak_broken():
+    """
+    Function to retrieve data of broken streaks and print them to the terminal
+    """
     print_cust("\n**Broken Streaks**", "bold fg: cyan")
     all_streak_data, headers = retrieve_all(db, "streak")
     for streak in all_streak_data:
@@ -94,7 +116,7 @@ def streak_broken():
             broken_times = len(broken_streaks)
         else:
             broken_times = 0
-        print_cust(f"Times Streak Was Broken: {broken_times}")
+        print_cust(f"Times Streak Was Reset: {broken_times}")
         print_cust("\nDates your streak was reset: ")
         for broken_streak in broken_streaks:
             if broken_streak != "" and broken_streak != None and broken_streak != " ":
@@ -108,6 +130,9 @@ def streak_broken():
     back_to_main = questionary.select("Back to main menu?", choices=["Yes"]).ask()
 
 def view_daily():
+    """
+    Function to view all daily habits
+    """
     print_cust("\n**View Daily Habits**", "bold fg:cyan")
     all_habits,headers = retrieve_all(db, "habit")
     all_daily_habits = []
@@ -125,6 +150,9 @@ def view_daily():
     back_to_main = questionary.select("Back to main menu?", choices=["Yes"]).ask()
 
 def view_weekly():
+    """
+    Function to view all weekly habits
+    """
     print_cust("\n**View Weekly Habits**", "bold fg:cyan")
     all_habits,headers = retrieve_all(db, "habit")
     all_weekly_habits = []
@@ -142,6 +170,9 @@ def view_weekly():
     back_to_main = questionary.select("Back to main menu?", choices=["Yes"]).ask()
 
 def view_monthly():
+    """
+    Function to view all monthly habits
+    """
     print_cust("\n**View Monthly Habits**", "bold fg:cyan")
     all_habits,headers = retrieve_all(db, "habit")
     all_monthly_habits = []

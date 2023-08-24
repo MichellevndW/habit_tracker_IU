@@ -12,14 +12,26 @@ class Tracker:
         self.description = description
         self.date_tracked = date_tracked
         self.notes = notes
-
     
     def store_tracker(self, db):
+        """
+        Function to store tracker in the tracker table
+        :param db: Database where tracker should be stored
+        """
         add_tracker(db, self.habit_id, self.description, self.date_tracked, self.notes)
 
     def delete_single_tracker(self, db):
+        """
+        Function to remove a single tracker from the database
+        :param db: Database where tracker should be removed from
+        """
         remove_single_tracker(db, self.tracker_id)
     
     def delete_all_trackers(self, db):
+        """
+        Function to delete multiple trackers with the same habit_id from the 
+        tracker table
+        :param db: Database where trackers should be removed
+        """
         remove_all_trackers(db, self.habit_id)
 

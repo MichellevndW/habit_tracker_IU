@@ -15,7 +15,12 @@ db = get_db("habit_tracker.db")
 create_tables(db)
 
 def print_cust(text, style="bold"):
-    """To print in custom styles for better user experience"""
+    """
+    To print in custom styles for better user experience
+    :param text: Text that has to be printed
+    :param style: Any custom style
+    :return questionary print statement
+    """
     return questionary.print(text, style = style)
 
 def new_con():
@@ -32,8 +37,7 @@ def exit_cli():
 def main_menu():
     """
     Prints main menu for user selection
-    :param menu_option: prints menu with user's options
-    :return: User selected option 
+    :return: User selected menu option 
     """
     print_cust("\n****MAIN MENU****\n", "bold fg:cyan")
     menu_option = questionary.select("What would you like to do today?\n", 
@@ -48,9 +52,8 @@ def main_menu():
 
 def create_new_habit(username):
     """
-    Function to get user input to create and save a new habit to the database
-    :param name, interval, category: Gathers user input
-    :param habit: Creates a new instance of the class Habit
+    Function to get user input, create and save a new habit to the database
+    :param username: User's name from cli input
     """
     print_cust("\n***Create New Habit***", "bold fg:cyan")
     print_cust(f"\nOk {username}, let's create a new habit!")
@@ -71,7 +74,7 @@ def demo_data_check(username):
                  -ask the user whether they want demo data loaded
                  -call function add_sample_data() to load data if necessary
                  -redirect to create_new_habit if needed
-    :param all_data: loads all habit data from the database
+    :param username: User's name from cli input
 
     """
     demo_loaded = False
@@ -94,11 +97,7 @@ def demo_data_check(username):
 def get_date_input():
     """
     Gathers manual date input from user and does basic validity checks
-    :param date_input: Asks for user date input
-    :param date_check: Removes all spaces and other characters from user input(date_input)
-    :param current_year: Current year in integer format
-    :param current_date: Current date in str format
-    :return: date_input 
+    :return: The date that was input as date_input 
     """
     date_correct = False
     while date_correct == False:
@@ -136,10 +135,8 @@ def get_date_input():
 def check_date_exists(chosen_habit):
     """
     Checks if the date entered already exists for the specific habit in the database
-    :param all_tracker_data: retrieves all tracker data of the specified habit from the database
-    :param habit_date: Date when habit was created, formatted in numbers only
-    :param date_input: calls get_date_input() for date input and verification
-    :return date_input
+    :param chosen_habit: Habit chosen to mark as complete
+    :return date input through cli as date_input
     """
     check = True 
     all_tracker_data, headers = retrieve_all(db, "tracker", chosen_habit[0])
@@ -166,19 +163,7 @@ def check_date_exists(chosen_habit):
 def log_habit():
     """
     Function to mark a habit as complete or log a tracker for a specific habit.
-    -Creates new tracker and streak data in the respective tables
-    :param habits: retrieves all habit data from the database
-    :param menu_options: iterates over habits and compiles a list of current habits
-                         available to mark as complete.
-    :param menu_option: Asks user input to choose habit to be marked complete
-    :param chosen_habit: Used to retrieve specific habit from the habit table
-    :param track: Calls a new instance of Tracker class
-    :param data_pushed: Retrieves all tracker data ordered by tracker_id to get tracker last logged
-    :param trackers_ob_date: Retrieves all tracker data in tracker table ordered by date 
-    :param streak: Calls a new instance of Streak class
-    :param habit: Retrieves specific habit data from habit table
-    :params date_clean, date_str: compiles date in user friendly str format
-    :param date_input: Calls check_date_exists() to get a verified date from user input
+        -Creates new tracker and streak data in the respective tables
     """
     print_cust("\n***Log Habit***", "bold fg:cyan")
     habits, headers = retrieve_all(db, "habit")
@@ -241,13 +226,6 @@ def edit_habit():
     Function to edit an already existing habit in the habit table
              - User can not edit habit_id or date_added
              - Only one parameter can be edited per edit_habit()
-    :param all_data: Retrieves all habit data from habit table
-    :param menu_options: Iterates over all habit data to compile user choices
-    :param habit_to_edit: User input to choose which habit to edit
-    :param habit_id: ID of habit to be edited
-    :param habit_data: Retrieves specified habit data from habit table
-    :param to_edit: Gets user input about what parameter the user wants to edit
-    :param new_data: New data to edit in habit table
     """
     print_cust("\n***Edit Habit***", "bold fg:cyan")
     all_data, headers = retrieve_all(db, "habit")
@@ -283,10 +261,6 @@ def delete_habit():
     """
     Function to permanently delete habit data and all related tracker and streak data
         -User is prompted whether they are sure they want to delete as to prevent accidental deletion
-    :param all_habits: Retrieves all habit data from habit table
-    :param menu_options: Iterates over habits to compile a list of habits that can be deleted
-    :param to_delete: User selected habit
-    :param confirm: User input to confirm deletion
     """
     print_cust("\n***Delete Habit***", "bold fg:cyan")
     all_habits, headers = retrieve_all(db, 'habit')
@@ -305,8 +279,7 @@ def delete_habit():
 
 def analysis():
     """
-    Function to handle terminal printing and user input and redirection of analysis menu
-    :param menu_option: Prints user menu with available analysis options for user choice
+    Function to handle terminal printing, user input and redirection of the analysis menu
     """
     print_cust("\n***Analysis***", "bold fg: cyan")
     menu_option = questionary.select("Please choose an option to view",
@@ -351,7 +324,6 @@ def analysis():
         view_monthly()
         new_con()
         
-
 def startup_cli():
     """
     Function to continually loop to the main menu until user decides to exit. 

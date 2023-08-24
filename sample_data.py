@@ -78,6 +78,10 @@ sample_data_tracker = [(2,"Slept 8 hours", "2023,07,16", "No screens after 9"),
 
 
 def add_sample_data(db):
+    """
+    Function to add sample data to a database
+    :param db: Database where data should be stored
+    """
     for sample in sample_data_habits:
         add_habit(db, sample[0], sample[1], sample[2], sample[3], sample[4])
     for sample in sample_data_tracker:
