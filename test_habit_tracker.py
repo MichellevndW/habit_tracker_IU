@@ -59,6 +59,9 @@ class TestCode:
             else:
                 exists = False
         assert exists == False
+
+    def test_streak(self):
+        pass
     
     def test_db_functions(self):
         #Tests edit tracker, retrieve_one, retrieve all
