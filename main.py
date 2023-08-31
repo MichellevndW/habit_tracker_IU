@@ -84,7 +84,6 @@ def demo_data_check(username):
             if data[1] == "DEMO_DATA":
                 demo_loaded = True
     if demo_loaded:
-        #TODO SCREEN BREAK
         print_cust("\n--Demo data has already been loaded--")
     else:
         demo_data = questionary.select("Would you like to load the available demo data?", choices=["Yes","No thanks"]).ask()
@@ -184,10 +183,10 @@ def log_habit():
         notes = questionary.text("Add any notes here: ").ask()
         track = Tracker(chosen_habit[0], None, description, date.today(), notes )
         track.store_tracker(db)
-        data_pushed, headers = retrieve_all(db, "tracker", no_order=True)
+        data_pushed, headers = retrieve_all(db, "tracker", track.habit_id, no_order=True)
         data_pushed = data_pushed[-1]
         track.tracker_id = data_pushed[0]
-        trackers_ob_date, headers = retrieve_all(db, "tracker")
+        trackers_ob_date, headers = retrieve_all(db, "tracker", track.habit_id)
         index = trackers_ob_date.index(data_pushed)
         if index != 0:
             previous_data = trackers_ob_date[(index-1)]
@@ -206,10 +205,10 @@ def log_habit():
         notes = questionary.text("Add any notes here: ").ask()
         track = Tracker(chosen_habit[0], None, description, date_input, notes )
         track.store_tracker(db)
-        data_pushed, headers = retrieve_all(db, "tracker", no_order=True)
+        data_pushed, headers = retrieve_all(db, "tracker", track.habit_id, no_order=True)
         data_pushed = data_pushed[-1]
         track.tracker_id = data_pushed[0]
-        trackers_ob_date, headers = retrieve_all(db, "tracker")
+        trackers_ob_date, headers = retrieve_all(db, "tracker", track.habit_id)
         index = trackers_ob_date.index(data_pushed)
         if index != 0:
             previous_data = trackers_ob_date[(index-1)]
