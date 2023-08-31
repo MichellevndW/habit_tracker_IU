@@ -50,6 +50,7 @@ python3 main.py
 ```
 or
 ```
+pip install -r requirements.txt
 python3 pytest . 
 ```
 
