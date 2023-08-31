@@ -33,6 +33,34 @@ pip install -r requirements.txt
 python3 main.py
 ```
 
+### Testing/Demo/Sample Data Set
+
+* The app comes with 4 weeks of predefined demo data stored in sample_data.py
+* To load this data, execute main.py as above, when prompted whether you want to load the demo data, choose yes.
+    * Data can now be viewed in "habit_tracker.db"
+* This data set is also used when using pytest on test_habit_tracker.py
+    * Testing automatically deletes test.db, comment out the last function called "test_teardown_method" if you want to view the data that was added. Please note that test_habit_tracker.py does alter this data.
+
+```
+pip install -r requirements.txt
+python3 main.py
+```
+or
+```
+python3 pytest . 
+```
+
+### Testing the habit tracker
+
+* Modular testing of the habit tracker was performed during development
+* Main functions are tested utilizing pytest
+* To run the tests:
+
+```
+pip install -r requirements.txt
+python3 pytest . 
+```
+
 ## Future Development
 
 ### Possible further improvements for this project:
