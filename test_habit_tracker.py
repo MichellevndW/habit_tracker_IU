@@ -36,6 +36,7 @@ class TestCode:
         assert len(habits) == habits_before + 1
 
     def test_streak(self):
+        #Tests current streak and longest streak calculations as well as streak broken dates
         streak_data, headers = retrieve_one(self.db, "streak", 2) 
         current_broken_streaks = len(streak_data[0][2])
         #Adds a tracker more than one day from last daily demo data
