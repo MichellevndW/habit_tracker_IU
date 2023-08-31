@@ -55,6 +55,7 @@ python3 pytest .
 
 * Modular testing of the habit tracker was performed during development
 * Main functions are tested utilizing pytest
+    * Please view comments in test_habit_tracker for details about tests performed
 * To run the tests:
 
 ```
