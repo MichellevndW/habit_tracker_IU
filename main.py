@@ -8,8 +8,9 @@ from analyse import streak_broken, view_daily, view_weekly, view_monthly
 from tracker import Tracker
 from habit import Habit
 from streak import Streak
-from db import get_db,create_tables,retrieve_all,retrieve_one,edit_habit_db,remove_habit
+from db import get_db,create_tables,retrieve_all,retrieve_one,edit_habit_db,remove_habit, edit_streak
 from sample_data import add_sample_data
+from datetime import date
 
 db = get_db("habit_tracker.db")
 create_tables(db)
@@ -30,6 +31,38 @@ def new_con():
     """
     os.system('clear')
 
+def check_streaks():
+    """
+    Function to check if user hasn't logged a habit in time and resets current streak to 0.
+    Called in main_menu()
+    Disabled for the purpose of this project - uncomment in main_menu() to activate
+    """
+    streaks, headers = retrieve_all(db, "streak")
+    todays_date = date.today()
+    for streak in streaks:
+        habit, headers = retrieve_one(db, "habit", streak[0])
+        interval = habit[0][3]
+        print(interval)
+        trackers, headers = retrieve_all(db, "tracker", streak[0])
+        latest_tracker = trackers[-1]
+        date_latest_tracker = date(int(latest_tracker[3][0:4]), int(latest_tracker[3][4:6]), int(latest_tracker[3][6:8]))
+        if interval.lower() == "daily":
+            if (todays_date - date_latest_tracker).days > 1:
+                edit_streak(db, "current_streak", "'0'", streak[0])
+        elif interval.lower() == "weekly":
+            if (todays_date - date_latest_tracker).days > 7:
+                edit_streak(db, "current_streak", "'0'", streak[0])
+        elif interval.lower() == "monthly":
+            if date_latest_tracker.month in [4,6,9,11]:
+                if (todays_date - date_latest_tracker).days > 30:
+                    edit_streak(db, "current_streak", "'0'", streak[0])
+            elif date_latest_tracker.month == 2:
+                if (todays_date - date_latest_tracker).days > 28:
+                    edit_streak(db, "current_streak", "'0'", streak[0])
+            else:
+                if (todays_date - date_latest_tracker).days > 31:
+                    edit_streak(db, "current_streak", "'0'", streak[0])
+
 def exit_cli():
     """Calls to exit terminal"""
     sys.exit()
@@ -39,6 +72,8 @@ def main_menu():
     Prints main menu for user selection
     :return: User selected menu option 
     """
+    # For purposes of this project, check_streaks() is disabled, to enable, please uncomment
+    # check_streaks()
     print_cust("\n****MAIN MENU****\n", "bold fg:cyan")
     menu_option = questionary.select("What would you like to do today?\n", 
                                      choices=["1. Log a Habit",
