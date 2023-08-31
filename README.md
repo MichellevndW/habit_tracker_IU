@@ -41,7 +41,7 @@ python3 main.py
 * This data set is also used when using pytest on test_habit_tracker.py
     * Demo data is automatically loaded when test_sample_data is called
     * Testing automatically deletes test.db. 
-        *comment out the last function called "test_teardown_method" in test_habit_tracker.py if you want to view the data that was added. 
+        * comment out the last function called "test_teardown_method" in test_habit_tracker.py if you want to view the data that was added. 
     * Please note that test_habit_tracker.py does alter this data set.
 
 ```
